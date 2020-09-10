@@ -24,7 +24,8 @@ func main() {
 		usage()
 	}
 
-	fi := new(floor)
+	//flr := &floor{} is same as flr := new(floor)
+	flr := &floor{}
 
 	f, err := excelize.OpenFile(os.Args[1])
 	if err != nil {
@@ -40,12 +41,12 @@ func main() {
 		// }
 		// fmt.Println("whole row", row)
 		// fmt.Println("index", row[1])
-		level(row[1], fi, row)
+		level(row[1], flr, row)
 	}
-	fmt.Println("first floor\n", fi.level_1, "\n",
-		"second floor\n", fi.level_2, "\n",
-		"third floor\n", fi.level_3, "\n",
-		"fourth floor\n", fi.level_4, "\n")
+	fmt.Println("first floor\n", flr.level_1, "\n",
+		"second floor\n", flr.level_2, "\n",
+		"third floor\n", flr.level_3, "\n",
+		"fourth floor\n", flr.level_4, "\n")
 }
 
 func level(s string, f *floor, r []string) {
@@ -70,7 +71,7 @@ func level(s string, f *floor, r []string) {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: %s <inputfile>\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "usage: %s <inputflrle>\n", os.Args[0])
 	flag.PrintDefaults()
 	fmt.Scanln()
 	os.Exit(2)
