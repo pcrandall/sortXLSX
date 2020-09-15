@@ -4,13 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
+	"strconv"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
 
-// sort by aisle
-// sort by x coord
 // write to xlsx
 type floor struct {
 	f1 [][]string
@@ -28,30 +28,19 @@ func main() {
 	//flr := &floor{} is same as flr := new(floor)
 	flr := &floor{}
 
-	f, err := excelize.OpenFile(os.Args[1])
+	file, err := excelize.OpenFile(os.Args[1])
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	// Get all the rows in the Sheet1.
-	rows := f.GetRows("Sheet1")
+	rows := file.GetRows("Sheet1")
 	for _, row := range rows {
-		// for _, colCell := range row {
-		// 	fmt.Print(colCell, "\t")
-		// }
 		level(row[1], flr, row)
 	}
-	// fmt.Println("first floor\n", flr.f1, "\n",
-	// 	"second floor\n", flr.f2, "\n",
-	// 	"third floor\n", flr.f3, "\n",
-	// 	"fourth floor\n", flr.f4, "\n")
 
 	sort.Slice(flr.f1, func(j, k int) bool {
-		// J, _ := strconv.Atoi(flr.f1[j][0])
-		// K, _ := strconv.Atoi(flr.f1[k][0])
-		// fmt.Println("J", flr.f1[j][0], "K", flr.f1[k][0])
-		fmt.Println("J", flr.f1[j][1], "K", flr.f1[k][1], flr.f1[j][1] < flr.f1[j][1])
 		return flr.f1[j][1] > flr.f1[k][1]
 	})
 	sort.Slice(flr.f2, func(j, k int) bool {
@@ -64,32 +53,77 @@ func main() {
 		return flr.f4[j][1] > flr.f4[k][1]
 	})
 
-	fmt.Println("first floor\n", flr.f1, "\n",
-		"second floor\n", flr.f2, "\n",
-		"third floor\n", flr.f3, "\n",
-		"fourth floor\n", flr.f4, "\n")
+	// Create new file and write sorted rows
+	sortedFile := excelize.NewFile()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var rowIndex int
+
+	for idx, sortedFlr := range flr.f4 {
+		// Sheet to write, row index to write, convert slice to interface
+		sortedFile.SetSheetRow("Sheet1", "A"+strconv.Itoa(idx+1), &[]interface{}{sortedFlr[1], sortedFlr[2], sortedFlr[3]})
+		rowIndex = idx + 1
+		fmt.Println("f4", sortedFlr)
+	}
+
+	for _, sortedFlr := range flr.f3 {
+		rowIndex++
+		// Sheet to write, row index to write, convert slice to interface
+		sortedFile.SetSheetRow("Sheet1", "A"+strconv.Itoa(rowIndex), &[]interface{}{sortedFlr[1], sortedFlr[2], sortedFlr[3]})
+		fmt.Println("f3", sortedFlr)
+	}
+
+	for _, sortedFlr := range flr.f2 {
+		rowIndex++
+		// Sheet to write, row index to write, convert slice to interface
+		sortedFile.SetSheetRow("Sheet1", "A"+strconv.Itoa(rowIndex), &[]interface{}{sortedFlr[1], sortedFlr[2], sortedFlr[3]})
+		fmt.Println("f2", sortedFlr)
+	}
+
+	for _, sortedFlr := range flr.f1 {
+		rowIndex++
+		// Sheet to write, row index to write, convert slice to interface
+		sortedFile.SetSheetRow("Sheet1", "A"+strconv.Itoa(rowIndex), &[]interface{}{sortedFlr[1], sortedFlr[2], sortedFlr[3]})
+		fmt.Println("f1", sortedFlr)
+	}
+
+	fmt.Println("Row index here", rowIndex)
+	fmt.Println(os.Args[1])
+
+	//if err := sortedFile.SaveAs("Sorted_" + os.Args[1]); err != nil {
+	if err := sortedFile.SaveAs("Sorted_Blockadelist.xlsx"); err != nil {
+		fmt.Println(err)
+	}
 
 }
 
 func level(s string, flr *floor, r []string) {
+	// check for empty row
+	if len(s) < 1 || len(string(s)) < 7 {
+		return
+	}
 
-	//NRA4103X66240Y02Z25
-	// Floor is always going to be the 7th char
+	// "NRA4103X66240Y02Z25" Floor is always going to be the 7th char
 	sn := string(s[6])
-	fmt.Println(sn)
-	switch sn {
-	case "1":
-		fmt.Println("First floor", s)
-		flr.f1 = append(flr.f1, r)
-	case "2":
-		fmt.Println("Second floor", s)
-		flr.f2 = append(flr.f2, r)
-	case "3":
-		fmt.Println("Third floor", s)
-		flr.f3 = append(flr.f3, r)
-	case "4":
-		fmt.Println("Fourth floor", s)
-		flr.f4 = append(flr.f4, r)
+
+	isfloor := regexp.MustCompile(`1|2|3|4`)
+
+	if isfloor.MatchString(sn) {
+		switch sn {
+		case "1":
+			flr.f1 = append(flr.f1, r)
+		case "2":
+			flr.f2 = append(flr.f2, r)
+		case "3":
+			flr.f3 = append(flr.f3, r)
+		case "4":
+			flr.f4 = append(flr.f4, r)
+		}
+	} else {
+		return
 	}
 }
 
