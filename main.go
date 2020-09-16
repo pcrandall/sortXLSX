@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
@@ -55,6 +56,12 @@ func main() {
 
 	// Create new file and write sorted rows
 	sortedFile := excelize.NewFile()
+
+	sortedFile.SetColWidth("Sheet1", "A", "C", 25)
+
+	// style, err := sortedFile.NewStyle(`"alignment": {"horizontal": "right"}`)
+	// sortedFile.SetColStyle("Sheet1", "B:C", style)
+
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -62,42 +69,47 @@ func main() {
 
 	var rowIndex int
 
+	sortedFile.SetSheetRow("Sheet1", "A1", &[]interface{}{"STOLOC", "LUID", "Verified LUID"})
+
 	for idx, sortedFlr := range flr.f4 {
 		// Sheet to write, row index to write, convert slice to interface
-		sortedFile.SetSheetRow("Sheet1", "A"+strconv.Itoa(idx+1), &[]interface{}{sortedFlr[1], sortedFlr[2], sortedFlr[3]})
-		rowIndex = idx + 1
-		fmt.Println("f4", sortedFlr)
+		sortedFile.SetSheetRow("Sheet1", "A"+strconv.Itoa(idx+2), &[]interface{}{sortedFlr[1], sortedFlr[2], sortedFlr[3]})
+		rowIndex = idx + 2
+		// fmt.Println("f4", sortedFlr)
 	}
 
 	for _, sortedFlr := range flr.f3 {
 		rowIndex++
 		// Sheet to write, row index to write, convert slice to interface
 		sortedFile.SetSheetRow("Sheet1", "A"+strconv.Itoa(rowIndex), &[]interface{}{sortedFlr[1], sortedFlr[2], sortedFlr[3]})
-		fmt.Println("f3", sortedFlr)
+		// fmt.Println("f3", sortedFlr)
 	}
 
 	for _, sortedFlr := range flr.f2 {
 		rowIndex++
 		// Sheet to write, row index to write, convert slice to interface
 		sortedFile.SetSheetRow("Sheet1", "A"+strconv.Itoa(rowIndex), &[]interface{}{sortedFlr[1], sortedFlr[2], sortedFlr[3]})
-		fmt.Println("f2", sortedFlr)
+		// fmt.Println("f2", sortedFlr)
 	}
 
 	for _, sortedFlr := range flr.f1 {
 		rowIndex++
 		// Sheet to write, row index to write, convert slice to interface
 		sortedFile.SetSheetRow("Sheet1", "A"+strconv.Itoa(rowIndex), &[]interface{}{sortedFlr[1], sortedFlr[2], sortedFlr[3]})
-		fmt.Println("f1", sortedFlr)
+		// fmt.Println("f1", sortedFlr)
 	}
 
-	fmt.Println("Row index here", rowIndex)
-	fmt.Println(os.Args[1])
+	curDate := time.Now()
 
-	//if err := sortedFile.SaveAs("Sorted_" + os.Args[1]); err != nil {
-	if err := sortedFile.SaveAs("Sorted_Blockadelist.xlsx"); err != nil {
+	// fmt.Println(curDate.Format("2006-01-02"))
+
+	fileName := "Sorted_Blockadelist_" + curDate.Format("2006-01-02") + ".xlsx"
+
+	if err := sortedFile.SaveAs(fileName); err != nil {
 		fmt.Println(err)
 	}
 
+	fmt.Println("New file is located here:", fileName)
 }
 
 func level(s string, flr *floor, r []string) {
@@ -128,7 +140,7 @@ func level(s string, flr *floor, r []string) {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: %s <inputflrle>\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "usage: %s <inputfile>\n", os.Args[0])
 	flag.PrintDefaults()
 	fmt.Scanln()
 	os.Exit(2)
